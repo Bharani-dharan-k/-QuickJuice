@@ -51,4 +51,19 @@ export const authApi = {
   }
 };
 
+/**
+ * Update user profile
+ * @param {Object} data - Profile data to update
+ * @returns {Promise<Object>} Response data
+ */
+export const updateProfile = async (data) => {
+  try {
+    const response = await client.put('/auth/update-profile', data);
+    return response.data;
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    throw error;
+  }
+};
+
 export default authApi;
