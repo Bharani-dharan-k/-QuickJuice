@@ -27,11 +27,29 @@ const riderRoutes = require('./routes/rider.routes');
 const app = express();
 const httpServer = createServer(app);
 
-// Initialize Socket.IO
+// Initialize Socket.IO with multiple origins support
+const allowedOrigins = [
+  'http://localhost:5173',
+  'http://localhost:5174',
+  'https://quickjuice-frontend.onrender.com',
+  process.env.FRONTEND_URL,
+  process.env.SOCKET_CORS_ORIGIN
+].filter(Boolean); // Remove undefined values
+
 const io = new Server(httpServer, {
   cors: {
-    origin: process.env.SOCKET_CORS_ORIGIN || 'http://localhost:5173',
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like Postman, mobile apps, curl)
+      if (!origin) return callback(null, true);
+      
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
   },
 });
 
@@ -46,12 +64,26 @@ initializeSocket(io);
 
 // Security middlewares
 app.use(helmet());
+
+// CORS configuration for Express
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:5173',
+    origin: (origin, callback) => {
+      // Allow requests with no origin (like Postman, mobile apps, curl)
+      if (!origin) return callback(null, true);
+      
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
+
 app.use(mongoSanitize());
 app.use(compression());
 
