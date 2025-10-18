@@ -31,8 +31,7 @@ const orderSchema = new mongoose.Schema(
     orderNumber: {
       type: String,
       required: false, // Will be generated in pre-save hook
-      unique: true,
-      sparse: true,
+      // Index created below with unique and sparse options
     },
     customer: {
       type: mongoose.Schema.Types.ObjectId,
@@ -148,7 +147,7 @@ orderSchema.pre('save', function (next) {
 });
 
 // Indexes
-orderSchema.index({ orderNumber: 1 }, { unique: true });
+orderSchema.index({ orderNumber: 1 }, { unique: true, sparse: true });
 orderSchema.index({ customer: 1, createdAt: -1 });
 orderSchema.index({ status: 1 });
 orderSchema.index({ rider: 1 });
